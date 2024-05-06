@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  email String @unique
+  username String
+  password String
+  token String?
+  bio String?
+  image String?
+  articles Article[] @relation("UserAuthor")
+  favoriteIDs String[] @db.ObjectId
+  favorites Article[] @relation("UserFavorites", fields: [favoriteIDs], references: [id])
+}
+
+model Article {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  slug String? @unique
+  title String
+  description String
+  body String
+  tagListIDs String[] @db.ObjectId
+  tagList Tag[] @relation(fields: [tagListIDs], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  favoritedByIDs String[] @db.ObjectId
+  favoritedBy User[] @relation("UserFavorites", fields: [favoritedByIDs], references: [id])
+  author User @relation("UserAuthor", fields: [authorId], references: [id])
+  authorId String @db.ObjectId
+}
+
+model Tag {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String @unique
+  articleIDs String[] @db.ObjectId
+  articles Article[] @relation( fields: [articleIDs], references: [id])
+}
